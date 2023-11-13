@@ -5,4 +5,5 @@ export const menus: IMenu[] = [
     {name:"Речевая аналитика", ion: "analytics-outline",url:"/charts"},
     {name:"Текстовый поиск", ion: "search-outline", url:"/textsearch"},
     {name:"Отправка файла", ion: "send-outline", url:"/sendfile"},
+    {name:"Редактор Тэгов", ion: "pricetags-outline", url:"/tags"},
 ]

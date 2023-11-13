@@ -4,7 +4,8 @@ import { Navigation } from './components/Navigation';
 import {Route, Routes} from 'react-router-dom'
 import { ChartContent } from './pages/ChartContent';
 import { TextSearch } from './pages/TextSearchPage';
-import FileForm from './components/SendFileForm';
+import FileForm from './pages/SendFileForm';
+import EditableTable from './pages/TagEditor'
 
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path='/charts' element={<ChartContent/>}/>
         <Route path='/textsearch' element={<TextSearch/>}></Route>
         <Route path='/sendfile' element={<FileForm></FileForm>}></Route>
+        <Route path='/tags' element={<EditableTable></EditableTable>}></Route>
       </Routes>
     </div>
     );

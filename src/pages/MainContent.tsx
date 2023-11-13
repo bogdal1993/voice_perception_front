@@ -71,7 +71,7 @@ export function MainContent(){
 
   const column = [
     { heading: 'call_start_ts', value: 'call_start_ts' },
-    { heading: 'call_end_ts', value: 'call_end_ts' },
+    //{ heading: 'call_end_ts', value: 'call_end_ts' },
     { heading: 'caller', value: 'caller' },
     { heading: 'calle', value: 'calle' },
     { heading: 'duration', value: 'duration' },
@@ -90,19 +90,20 @@ export function MainContent(){
             <div className="details">
                 <div className='FiltersForm'>
                     <button onClick={() => {updateData();setOffset(0);}}>UPDATE</button>
-                <span>endDate</span>
+                
+                <span>StartDate</span>
                 <ReactDatePicker
-                     selected={startDate}
-                     onChange={(date) => setStartDate(date)}
+                     selected={endDate}
+                     onChange={(date) => setEndDate(date)}
                      showTimeSelect
                      timeFormat="HH:mm"
                      timeIntervals={15}
                      dateFormat="dd.MM.yyyy HH:mm"
                     />
-                <span>StartDate</span>
+                <span>endDate</span>
                 <ReactDatePicker
-                     selected={endDate}
-                     onChange={(date) => setEndDate(date)}
+                     selected={startDate}
+                     onChange={(date) => setStartDate(date)}
                      showTimeSelect
                      timeFormat="HH:mm"
                      timeIntervals={15}

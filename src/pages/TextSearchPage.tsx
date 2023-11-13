@@ -94,7 +94,7 @@ export function TextSearch(){
 
   const column = [
     { heading: 'call_start_ts', value: 'call_start_ts' },
-    { heading: 'call_end_ts', value: 'call_end_ts' },
+    //{ heading: 'call_end_ts', value: 'call_end_ts' },
     { heading: 'caller', value: 'caller' },
     { heading: 'calle', value: 'calle' },
     { heading: 'duration', value: 'duration' },

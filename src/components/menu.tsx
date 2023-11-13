@@ -1,7 +1,7 @@
 import React from 'react';
 import { IMenu } from '../models';
 import { addIcons } from 'ionicons';
-import { searchOutline, analyticsOutline, sendOutline } from 'ionicons/icons';
+import { searchOutline, analyticsOutline, sendOutline, pricetagOutline } from 'ionicons/icons';
 import { IonIcon } from '@ionic/react'; 
 import { Link } from 'react-router-dom'
 
@@ -13,7 +13,8 @@ interface MenuProps {
 addIcons({
     'search-outline': searchOutline,
     'analytics-outline': analyticsOutline,
-    'send-outline':sendOutline
+    'send-outline':sendOutline,
+    'pricetags-outline':pricetagOutline
   
   });
 

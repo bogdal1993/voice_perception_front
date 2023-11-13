@@ -4,7 +4,7 @@ import { menus } from '../data/menus';
 import { Menu } from './menu';
 import { IoIosMenu} from "react-icons/io";
 import { NavigationContext } from '../context/navContext';
-import FileForm from './SendFileForm';
+import FileForm from '../pages/SendFileForm';
 
 
 

@@ -34,7 +34,21 @@ interface IObjectKeys {
     [key: string]: string | number;
   }
 
-const emocolors: IObjectKeys = {'negative':'#fa5e66', 'neutral':'#5ea7fa', 'positive':'#5efa8d', 'skip':'#a8a8a8', 'speech':'#eeeeee'};
+//const emocolors: IObjectKeys = {'negative':'#fa5e66', 'neutral':'#5ea7fa', 'positive':'#5efa8d', 'skip':'#a8a8a8', 'speech':'#eeeeee'};
+
+// Функция для генерации случайных пастельных цветов
+const generatePastelColor = () => {
+    const min = 150; // Минимальное значение для пастельных оттенков
+    const max = 255; // Максимальное значение для пастельных оттенков
+    const r = Math.floor(Math.random() * (max - min + 1) + min);
+    const g = Math.floor(Math.random() * (max - min + 1) + min);
+    const b = Math.floor(Math.random() * (max - min + 1) + min);
+    return `rgb(${r},${g},${b})`;
+  };
+  
+  // Создание массива из 100 случайных пастельных цветов
+  const pastelColorsArray: string[] = Array.from({ length: 100 }, generatePastelColor);
+  
 
 export function PieComponent(chartData: IChart<IFilterBase>){
 
@@ -99,7 +113,8 @@ export function PieComponent(chartData: IChart<IFilterBase>){
                     {
                         label: "Число фраз",
                         data: res.data.map((e:IEmotionsDS) => e.value),
-                        backgroundColor: res.data.map((e:IEmotionsDS) => emocolors[e.label])
+                        backgroundColor: pastelColorsArray//res.data.map((e:IEmotionsDS) => randomRGB())
+                        //['rgba(200, 200, 200, 0.75)'] //res.data.map((e:IEmotionsDS) => emocolors[e.label])
                     }
                 ]
             };

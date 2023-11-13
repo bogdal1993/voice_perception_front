@@ -11,7 +11,7 @@ import { IChart } from '../models';
 export function ChartContent(){
     const Inav = useContext(NavigationContext)
     const mainActiveClassname = Inav.navigationOpen ? 'active' : ''
-    const mainClassnames = ['main',mainActiveClassname]
+    const mainClassnames = ['main','overflowauto',mainActiveClassname]
     const [hide, setHide] = useState<boolean>(false);
     const chartctx = useContext(ChartContext)
 
