@@ -9,6 +9,7 @@ interface IFrase {
     result:Iword[]
     spk:number
     emotion:string
+    emotion_audio:string
 }
 
 interface Iword {
@@ -97,19 +98,22 @@ function CallCardElement(call: Icall){
 
       function get_summarization() {
         if ((!summarization && transcriptText.length==0) || questionText!=''){
-            if (dataTable.length<8){
+            if (dataTable.length<5){
                 setTranscriptText("Слишком короткий диалог");
                 setSummarization(!summarization);
                 return
             }
+            
             setLoading(true); // Устанавливаем состояние loading в true перед запросом
             setTranscriptText("Loading...");
             console.log(dataTable);
             //var full_text = '<s>Контекст: ' + JSON.stringify( call.item ) + '\nРазговор:\n';
-            var full_text = '<s>';
+            var full_text = '';
             full_text += questionText + '\n'
             console.log(dataTable.length);
-            dataTable.map((Frase) => (full_text += ( Frase.spk ? call.item['caller']  : call.item['calle'])+ ': ' + Frase.text + '\n'));
+            //dataTable.map((Frase) => (full_text += ( Frase.spk ? call.item['caller']  : call.item['calle'])+ ': ' + Frase.text + '\n'));
+            dataTable.map((Frase) => (full_text += ( Frase.spk ? 'Speaker 1'  : 'Speaker 2')+ ': ' + Frase.text + '\n'));
+            //dataTable.map((Frase) => (full_text += ' - ' + Frase.text + '\n'));
             if (questionText==''){
                 full_text += 'Суммаризация диалога:\n';
             } else {
@@ -181,14 +185,22 @@ function CallCardElement(call: Icall){
                             <span>{call.item['calle']}</span>
                             <span>{call.item['caller']}</span>
                         </div>
-                    <div className='transcriptionText'>
-                        {summarization ?  transcriptText: 
-                            dataTable.map(Frase =>  <div className={"text " + (Frase.spk ? 'right ':'left ') + Frase.emotion} style={{ 
-                                top:(Frase.result[0].start)+'em', 
-                                bottom:(Frase.result[0].end)+'em'
-                                }}> {formatTime(Frase.result[0].start)}: {Frase.text}</div>)
-                        }
-                    </div>
+                        <div className='transcriptionText'>
+                            {summarization ? transcriptText : 
+                                dataTable.map(Frase => (
+                                    <div 
+                                        className={"text " + (Frase.spk ? 'right ' : 'left ') + Frase.emotion + " " + Frase.emotion_audio + "_audio"} 
+                                        style={{ 
+                                            top: (Frase.result[0].start / 3) + 'em', 
+                                            bottom: (Frase.result[0].end / 3) + 'em'
+                                        }}
+                                        data-emotion={"По Тексту - " + Frase.emotion + " По Аудио - " + Frase.emotion_audio}
+                                    >
+                                        {formatTime(Frase.result[0].start)}: {Frase.text}
+                                    </div>
+                                ))
+                            }
+                        </div>
                 </div>            
             </div>
         </div>

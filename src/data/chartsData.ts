@@ -9,8 +9,8 @@ interface IChartTypeConfig {
     basefilter: any
 }
 
-export const apiUrl: string = process.env.NODE_ENV === 'production' ? '/api/' : 'http://192.168.0.172/api/';
-export const apillmUrl: string = process.env.NODE_ENV === 'production' ? '/llm/' : 'http://192.168.0.147:8005/llm/';
+export const apiUrl: string = process.env.NODE_ENV === 'production' ? '/api/' : 'http://127.0.0.1/api/';
+export const apillmUrl: string = process.env.NODE_ENV === 'production' ? '/llm/' : 'http://127.0.0.1:8005/llm/';
 
 export const chartData: IChart<any>[] = [
     {type:"PieComponent",span:[1,1],datasource:"emotions",chartname:"",filter:{startDate: new Date().toISOString(),endDate: new Date().toISOString(),caller: "%",callee: "%",spk:"1"}},
