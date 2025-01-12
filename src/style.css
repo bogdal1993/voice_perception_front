@@ -820,3 +820,16 @@ div.player > div:nth-child(2)
     align-content: flex-end;
     align-items: flex-end;
   }
+
+  .settingsBTN {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    margin-left: 10px;
+}
+
+.summarization-controls {
+    display: flex;
+    align-items: center;
+}
