@@ -60,7 +60,7 @@
         -   `src/components/menu.tsx`: Компонент меню.
         -   `src/components/Navigation.tsx`: Компонент боковой навигации.
         -   `src/components/Table.tsx`: Компонент таблицы.
-        -   `src/components/UseEffectExample.tsx`: Пример использования `useEffect` (возможно, для демонстрации или тестирования).
+        -   `src/components/UseEffectExample.tsx`: Пример использования `useEffect`.
         -   `src/components/chartsComponents/`: Компоненты для конкретных типов графиков.
             -   `src/components/chartsComponents/lineComponent.tsx`: Компонент линейного графика.
             -   `src/components/chartsComponents/pieComponent.tsx`: Компонент кругового графика.
