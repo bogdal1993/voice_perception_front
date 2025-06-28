@@ -77,7 +77,7 @@
         -   `src/pages/SendFileForm.tsx`: Страница для загрузки файлов.
         -   `src/pages/TagEditor.tsx`: Страница для редактирования тегов.
         -   `src/pages/TextSearchPage.tsx`: Страница для текстового поиска.
--   `openai-service/`: Возможно, отдельный сервис, связанный с OpenAI.
+-   `openai-service/`: Отдельный сервис для работы с OpenAI.
 -   `openai-wrapper-service/`: Возможно, обертка для сервиса OpenAI.
 -   `test/`: Каталог для тестов.
 -   `test-app/`: Возможно, тестовое приложение или пример.
