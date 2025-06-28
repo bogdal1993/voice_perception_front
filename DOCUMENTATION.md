@@ -52,7 +52,7 @@
     -   `src/models.ts`: TypeScript-интерфейсы для моделей данных.
     -   `src/react-app-env.d.ts`: Файл объявлений типов для Create React App.
     -   `src/setupTests.ts`: Файл настройки тестов.
-    -   `src/wavesurfer.js`: Возможно, связан с обработкой аудиоволн.
+    -   `src/wavesurfer.js`: Обработка аудиоволн.
     -   `src/components/`: Переиспользуемые UI-компоненты.
         -   `src/components/ApiKeyModal.tsx`: Модальное окно для ввода API-ключа.
         -   `src/components/CallCard.tsx`: Компонент для отображения информации о звонке.
