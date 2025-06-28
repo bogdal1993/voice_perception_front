@@ -26,7 +26,7 @@ export const Table = ( table:ITable ) => {
       <table>
         <thead>
           <tr>
-            {table.column.map((item, index) => <TableHeadItem item={item} />)}
+            {table.column.map((item, index) => <TableHeadItem key={item.heading} item={item} />)}
           </tr>
         </thead>
         <tbody>
@@ -62,7 +62,7 @@ export const Table = ( table:ITable ) => {
         }
   
         return (
-            <td width={width}>{tableRowProp.item[`${columnItem.value}`]}</td>
+            <td key={columnItem.value} width={width}>{tableRowProp.item[`${columnItem.value}`]}</td>
         )
       })}
     </tr>

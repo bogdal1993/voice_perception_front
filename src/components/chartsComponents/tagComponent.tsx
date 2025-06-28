@@ -37,7 +37,13 @@ const part: IMultiSelectOption[] = [
     ]
 
 
-export function TagComponent(chartData: IChart<IFilterTagsCloud>){
+interface TagComponentProps extends IChart<IFilterTagsCloud> {
+    hide: boolean;
+    setHide: React.Dispatch<React.SetStateAction<boolean>>;
+    refreshTrigger: number;
+}
+
+export function TagComponent({ hide, setHide, refreshTrigger, ...chartData }: TagComponentProps){
 
     const chartctx = useContext(ChartContext)
     
@@ -78,7 +84,6 @@ export function TagComponent(chartData: IChart<IFilterTagsCloud>){
 
     const [blur, setBlur] = useState<boolean>(true);
     const mainActiveClassname = blur ? 'blur' : '';
-    const [hide, setHide] = useState<boolean>(false);
     const ChartContainerClassnames = ['ChartContainer',chartData.type,mainActiveClassname]
 
     const FormContainerClassnames = ['FiltersForm',"Width100"]
@@ -96,18 +101,10 @@ export function TagComponent(chartData: IChart<IFilterTagsCloud>){
 
     useEffect(() => {
         updateCallback();
-    }, [filter]);
+    }, [filter, refreshTrigger]); // Add refreshTrigger to dependencies
 
     return(
         <div className="chart">
-            <div className="chartHeader">
-                <span>{chartname.slice(0,30)}{chartname.length > 30 && '...'}</span>
-                <div className='chartAction'>
-                <IoIosMenu onClick={() => {console.log(chartData.filter); setHide(prev => !prev)}}></IoIosMenu>
-                <IoMdRefresh onClick={() => {updateFilter()}}></IoMdRefresh>
-                <IoMdClose onClick={() => chartctx.deleteChart(chartData)}></IoMdClose>
-                </div>
-            </div>
             { hide && <div className={FormContainerClassnames.join(' ')}>
                         <button onClick={() => {updateFilter(); setHide(prev => !prev);}}>UPDATE</button>
                     <span>Chart name</span>

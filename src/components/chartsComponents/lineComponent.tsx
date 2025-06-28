@@ -36,7 +36,13 @@ interface IObjectKeys {
 
 const emocolors: IObjectKeys = {'negative':'#fa5e66', 'neutral':'#5ea7fa', 'positive':'#5efa8d', 'skip':'#a8a8a8', 'speech':'#eeeeee'};
 
-export function LineComponent(chartData: IChart<IFilterBase>){
+interface LineComponentProps extends IChart<IFilterBase> {
+    hide: boolean;
+    setHide: React.Dispatch<React.SetStateAction<boolean>>;
+    refreshTrigger: number;
+}
+
+export function LineComponent({ hide, setHide, refreshTrigger, ...chartData }: LineComponentProps){
     
     const chartctx = useContext(ChartContext)
     
@@ -83,7 +89,6 @@ export function LineComponent(chartData: IChart<IFilterBase>){
 
     const [blur, setBlur] = useState<boolean>(true);
     const mainActiveClassname = blur ? 'blur' : '';
-    const [hide, setHide] = useState<boolean>(false);
     const ChartContainerClassnames = ['ChartContainer',chartData.type,mainActiveClassname]
 
     const FormContainerClassnames = ['FiltersForm',"Width100"]
@@ -124,19 +129,10 @@ export function LineComponent(chartData: IChart<IFilterBase>){
 
     useEffect(() => {
         updateCallback();
-    }, [filter]);
+    }, [filter, refreshTrigger]); // Add refreshTrigger to dependencies
 
     return(
-        <div className="chart" style={{gridColumn:'span '+chartData.span[1]}}>
-            
-            <div className="chartHeader">
-                <span>{chartname.slice(0,30)}{chartname.length > 30 && '...'}</span>
-                <div className='chartAction'>
-                <IoIosMenu onClick={() => {console.log(chartData.filter); setHide(prev => !prev)}}></IoIosMenu>
-                <IoMdRefresh onClick={() => {updateFilter()}}></IoMdRefresh>
-                <IoMdClose onClick={() => chartctx.deleteChart(chartData)}></IoMdClose>
-                </div>
-            </div>
+        <div className="chart" style={{gridColumn:'span '+chartData.span.w}}>
             { hide && <div className={FormContainerClassnames.join(' ')}>
                         <button onClick={() => {updateFilter(); setHide(prev => !prev);}}>UPDATE</button>
                     <span>Chart name</span>

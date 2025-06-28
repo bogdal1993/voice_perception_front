@@ -5,10 +5,19 @@ export interface IMenu {
 }
 
 export interface IChart<T> {
-    type: string,
+    type: 'PieComponent' | 'TagComponent' | 'LineComponent',
     filter: T | any,
     datasource: string,
-    span: number[],
+    span: {
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+        minW?: number;
+        maxW?: number;
+        minH?: number;
+        maxH?: number;
+    },
     chartname: string
 }
 

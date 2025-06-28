@@ -50,7 +50,13 @@ const generatePastelColor = () => {
   const pastelColorsArray: string[] = Array.from({ length: 100 }, generatePastelColor);
   
 
-export function PieComponent(chartData: IChart<IFilterBase>){
+interface PieComponentProps extends IChart<IFilterBase> {
+    hide: boolean;
+    setHide: React.Dispatch<React.SetStateAction<boolean>>;
+    refreshTrigger: number;
+}
+
+export function PieComponent({ hide, setHide, refreshTrigger, ...chartData }: PieComponentProps){
 
     const chartctx = useContext(ChartContext)
     
@@ -98,7 +104,6 @@ export function PieComponent(chartData: IChart<IFilterBase>){
 
     const [blur, setBlur] = useState<boolean>(true);
     const mainActiveClassname = blur ? 'blur' : '';
-    const [hide, setHide] = useState<boolean>(false);
     const ChartContainerClassnames = ['ChartContainer',chartData.type,mainActiveClassname]
 
     const FormContainerClassnames = ['FiltersForm',"Width100"]
@@ -129,18 +134,10 @@ export function PieComponent(chartData: IChart<IFilterBase>){
 
     useEffect(() => {
         updateCallback();
-    }, [filter]);
+    }, [filter, refreshTrigger]); // Add refreshTrigger to dependencies
 
     return(
         <div className="chart">
-            <div className="chartHeader">
-                <span>{chartname.slice(0,30)}{chartname.length > 30 && '...'}</span>
-                <div className='chartAction'>
-                <IoIosMenu onClick={() => {console.log(chartData.filter); setHide(prev => !prev)}}></IoIosMenu>
-                <IoMdRefresh onClick={() => {updateFilter()}}></IoMdRefresh>
-                <IoMdClose onClick={() => chartctx.deleteChart(chartData)}></IoMdClose>
-                </div>
-            </div>
             { hide && <div className={FormContainerClassnames.join(' ')}>
                         <button onClick={() => {updateFilter(); setHide(prev => !prev);}}>UPDATE</button>
                     <span>Chart name</span>

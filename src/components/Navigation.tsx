@@ -22,7 +22,7 @@ export function Navigation(){
                     <div className="toggle" onClick={() => Inav.toggle()}>
                         <IoIosMenu/>
                     </div>
-                    {menus.map(menuP =>  <Menu menu={menuP}/>)}
+                    {menus.map(menuP =>  <Menu key={menuP.url} menu={menuP}/>)}
                     
                 </ul>
             </div>

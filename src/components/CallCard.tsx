@@ -57,11 +57,12 @@ function CallCardElement(call: Icall) {
     const get_summarization = async (dataTable: IFrase[], questionText: string, setTranscriptText: React.Dispatch<React.SetStateAction<string>>) => {
         const client = getOpenAIClient();
         const modelId = localStorage.getItem('modelId') || ''; // Убедитесь, что modelId задан
+        const prompt = localStorage.getItem('prompt') || 'Верни краткую сводку по диалогу на русском языке';
     
         let full_text = ''
         dataTable.map((Frase) => (full_text += (Frase.spk ? 'Собеседник 1' : 'Собеседник 2') + ': ' + Frase.text + '\n'));
         if (questionText === '') {
-            full_text += 'Верни краткую сводку по диалогу на русском языке:\n';
+            full_text += prompt + ':\n';
         } else {
             full_text += 'Ответь на вопрос по диалогу - \n';
             full_text += questionText + ':\n';
@@ -94,6 +95,25 @@ function CallCardElement(call: Icall) {
         }
     };
 
+    const generateDialogText = (dataTable: IFrase[]): string => {
+        let dialogText = '';
+        dataTable.forEach((Frase) => {
+            dialogText += `${Frase.spk ? call.item['calle'] : call.item['caller']}: ${Frase.text}\n`;
+        });
+        return dialogText;
+    };
+
+    const handleDownloadDialog = () => {
+        const dialogText = generateDialogText(dataTable);
+        const blob = new Blob([dialogText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dialog_${call.callid}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     const handleGetSummarization = async () => {
         if ((!summarization && transcriptText.length === 0) || questionText !== '') {
             if (dataTable.length < 5) {
@@ -117,10 +137,11 @@ function CallCardElement(call: Icall) {
         setSummarization(!summarization);
     };
 
-    const handleSaveApiKey = (apiUrl: string, apiKey: string, modelId: string) => {
+    const handleSaveApiKey = (apiUrl: string, apiKey: string, modelId: string, prompt: string) => {
         localStorage.setItem('apiUrl', apiUrl);
         localStorage.setItem('apiKey', apiKey);
         localStorage.setItem('modelId', modelId);
+        localStorage.setItem('prompt', prompt);
         setShowApiKeyModal(false);
     };
 
@@ -157,8 +178,9 @@ function CallCardElement(call: Icall) {
         const apiUrlStored = localStorage.getItem('apiUrl');
         const apiKeyStored = localStorage.getItem('apiKey');
         const modelIdStored = localStorage.getItem('modelId');
+        const promptStored = localStorage.getItem('prompt');
 
-        if (!apiUrlStored || !apiKeyStored || !modelIdStored) {
+        if (!apiUrlStored || !apiKeyStored || !modelIdStored || !promptStored) {
             setShowApiKeyModal(true);
         }
 
@@ -192,7 +214,7 @@ function CallCardElement(call: Icall) {
                     />
                     <div className='callMetaContainer'>
                         <div className='callMeta'>Мета информация{Object.entries(call.item).map(([key, subject], i) => (
-                            <div className="metas">
+                            <div className="metas" key={key}>
                                 <span className='keys'>{key}</span>
                                 <span className='values'>{subject} {call.item.name}</span>
                             </div>
@@ -200,7 +222,7 @@ function CallCardElement(call: Icall) {
                         </div>
                         <div className='tagContainer'>Тэги
                             <div className='callTags'>
-                                {tags.map(Tag => <span style={{ opacity: Tag.proba }} className={"tag" + Tag.spk} title={(100 * Tag.proba).toFixed(2).toString() + " %"}>{Tag.tag}</span>)}
+                                {tags.map(Tag => <span key={`${Tag.spk}-${Tag.tag}`} style={{ opacity: Tag.proba }} className={"tag" + Tag.spk} title={(100 * Tag.proba).toFixed(2).toString() + " %"}>{Tag.tag}</span>)}
                             </div>
                         </div>
                     </div>
@@ -213,6 +235,9 @@ function CallCardElement(call: Icall) {
                         <button className='settingsBTN' onClick={handleOpenSettings}>
                             ⚙️
                         </button>
+                        <button className='downloadBTN' onClick={handleDownloadDialog}>
+                            📥
+                        </button>
                     </div>
                     <input 
                         className='dialogquestion' 
@@ -222,13 +247,14 @@ function CallCardElement(call: Icall) {
                         onChange={(e) => { setQuestionText(e.target.value); }} 
                     />
                     <div className='transcriptionNames'>
-                        <span>{call.item['calle']}</span>
                         <span>{call.item['caller']}</span>
+                        <span>{call.item['calle']}</span>
                     </div>
                     <div className='transcriptionText'>
                         {summarization ? transcriptText :
                             dataTable.map(Frase => (
                                 <div
+                                    key={Frase.result[0].start}
                                     className={"text " + (Frase.spk ? 'right ' : 'left ') + Frase.emotion + " " + Frase.emotion_audio + "_audio"}
                                     style={{
                                         top: (Frase.result[0].start / 3) + 'em',
