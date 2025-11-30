@@ -10,6 +10,7 @@ interface ITable {
   data:any[]
   column:ICol[]
   setCallid:(call:string, item: any) => {}
+  playingCallId: string | null
 }
 
 interface ITableHeadin {
@@ -20,6 +21,7 @@ interface ITableRow {
   item: any
   column:ICol[]
   setCallid:(call:string, item: any) => {}
+  playingCallId: string | null
 }
 
 export const Table = ( table:ITable ) => {
@@ -31,7 +33,7 @@ export const Table = ( table:ITable ) => {
           </tr>
         </thead>
         <tbody>
-          {table.data.map((item, index) => <TableRow key={item.call_uuid || index} item={item} column={table.column} setCallid={table.setCallid} />)}
+          {table.data.map((item, index) => <TableRow key={item.call_uuid || index} item={item} column={table.column} setCallid={table.setCallid} playingCallId={table.playingCallId} />)}
         </tbody>
       </table>
     )
@@ -46,11 +48,19 @@ export const Table = ( table:ITable ) => {
   }
 
   const TableRow = (tableRowProp:ITableRow) => (
-    <tr id={tableRowProp.item['call_uuid']} onClick={() => {
+    <tr
+      id={tableRowProp.item['call_uuid']}
+      onClick={() => {
           tableRowProp.setCallid(tableRowProp.item['call_uuid'], tableRowProp.item);
           return false
         }
-      }>
+      }
+      style={{
+        backgroundColor: tableRowProp.playingCallId === tableRowProp.item['call_uuid'] ? '#e3f2fd' : 'transparent',
+        fontWeight: tableRowProp.playingCallId === tableRowProp.item['call_uuid'] ? 'bold' : 'normal'
+      }}
+      className="table-row-hover"
+    >
       {tableRowProp.column.map((columnItem, index) => {
 
         if(columnItem.value.includes('.')) {

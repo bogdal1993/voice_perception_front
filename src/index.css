@@ -309,6 +309,13 @@ code {
     color: var(--white);
 }
 
+/* Fix for table row hover - ensure text is visible */
+.table-row-hover:hover
+{
+    background-color: #f5f5f5 !important;
+    color: #000000 !important;
+}
+
 .callcard{
     display: flex;
     position: relative;

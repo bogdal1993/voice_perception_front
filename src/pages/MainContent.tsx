@@ -22,6 +22,7 @@ export function MainContent() {
     const [callid, setCallid] = useState("");
     const [item, setItem] = useState([]);
     const [autoplay, setAutoplay] = useState(false);
+    const [playingCallId, setPlayingCallId] = useState<string | null>(null);
 
     useEffect(() => {
         updateData();
@@ -63,6 +64,7 @@ export function MainContent() {
     const setCall = (call: string, item: any) => {
         setCallid(call);
         setItem(item);
+        setPlayingCallId(call); // Set the currently playing call ID
         setAutoplay(true); // Enable autoplay for the selected call
         console.log(item);
         return false;
@@ -126,7 +128,7 @@ export function MainContent() {
                         </div>
                     </div>
                     <div className="table-container">
-                        <Table data={dataTable} column={column} setCallid={setCall} />
+                        <Table data={dataTable} column={column} setCallid={setCall} playingCallId={playingCallId} />
                     </div>
                 </div>
             </div>
