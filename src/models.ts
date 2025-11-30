@@ -1,7 +1,10 @@
+import { IconType } from 'react-icons'; // Import IconType
+
 export interface IMenu {
-    name: string,
-    ion: any,
-    url: string
+    title: string, // Changed from name to title
+    url: string,
+    ion?: any, // Optional ionicons icon
+    icon?: IconType // Optional react-icons icon
 }
 
 export interface IChart<T> {

@@ -283,13 +283,24 @@ code {
 {
     font-weight: 600;
     margin-top: 30px;
+    vertical-align: middle;
+}
+
+/* Add specific styles for table data cells */
+.details table td {
+    vertical-align: middle;
+    word-break: keep-all;
+    white-space: pre-line; /* Allow line breaks with proper alignment */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center; /* Center align the multiline text */
 }
 .details .recentOrders table tr
 {
     color: var(--black1);
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     text-align: center;
-    height: 50px;
+    height: 3em; /* Increased height to accommodate multiline date format */
     font-size: 1.25em;
 }
 .details .recentOrders table tbody tr:hover
@@ -493,7 +504,7 @@ table thead, table tbody tr {
 div.player > div:nth-child(2)
 {
     width: 70%;
-    height: 256px;
+    /*height: 256px;*/
 }
 
 .playBTN{
@@ -567,6 +578,13 @@ div.player > div:nth-child(2)
 
 .metas > span:nth-child(1){
     font-weight: 700;
+}
+
+/* Style for values in meta information to handle multiline content */
+.metas .values {
+    white-space: pre-line;
+    text-align: left;
+    vertical-align: top;
 }
 
 .paginator
@@ -879,7 +897,7 @@ div.player > div:nth-child(2)
 
   .callMetaContainer{
     display: flex;
-    max-height: calc(100% - 256px - 20px);
+    /*max-height: calc(100% - 256px - 20px);*/
     width: 100%;
     justify-content: space-between;
   }
@@ -1142,4 +1160,24 @@ div.player > div:nth-child(2)
     .tagCard {
         padding: 10px; /* Smaller padding for tag card */
     }
+}
+
+/* Ensure consistent Wavesurfer display for both mono and stereo audio */
+.wavesurfer-container {
+  height: 128px !important;
+  overflow: hidden;
+}
+
+.wavesurfer-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Make audio progress container text non-selectable */
+.audio-progress-container {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard syntax */
 }

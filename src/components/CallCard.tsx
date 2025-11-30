@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import Wavesurfer from 'react-wavesurfer.js';
+// Removed Wavesurfer import
 import { apiUrl } from '../data/chartsData';
 import ApiKeyModal from './ApiKeyModal';
 import { OpenAI } from 'openai';
+import { formatDateTime } from '../utils/dateUtils';
 
 interface IFrase {
     text: string;
@@ -23,6 +24,8 @@ interface Iword {
 interface Icall {
     callid: string;
     item: any;
+    autoplay: boolean;
+    setAutoplay: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface Itag {
@@ -42,6 +45,23 @@ function CallCardElement(call: Icall) {
     const [position, setPosition] = useState(0);
     const [muted, setMuted] = useState(false);
     const [playing, setPlaying] = useState(false);
+    const [audioDuration, setAudioDuration] = useState(0);
+    const audioRef = useRef<HTMLAudioElement>(null);
+    
+    const loadCallData = () => {
+        // Only load data when user interacts with the call card
+        axios.get(`${apiUrl}backend/call_transcript/${call.callid}`)
+            .then(res => { setDataTable(res.data); setTranscriptText(""); setSummarization(false); setQuestionText(''); })
+            .catch(err => console.log(err));
+
+        axios.get(`${apiUrl}backend/call_tags/${call.callid}`)
+            .then(res => { setTags(deduplicateEntries(res.data)); })
+            .catch(err => console.log(err));
+    };
+
+    const handleClickPlay = () => {
+        setPlaying(prev => !prev);
+    };
 
     const getOpenAIClient = () => {
         const apiUrl = localStorage.getItem('apiUrl') || '';
@@ -174,6 +194,7 @@ function CallCardElement(call: Icall) {
         return uniqueEntriesArray;
     };
 
+    // Check for API key settings on initial render
     useEffect(() => {
         const apiUrlStored = localStorage.getItem('apiUrl');
         const apiKeyStored = localStorage.getItem('apiKey');
@@ -183,40 +204,110 @@ function CallCardElement(call: Icall) {
         if (!apiUrlStored || !apiKeyStored || !modelIdStored || !promptStored) {
             setShowApiKeyModal(true);
         }
+    }, []);
 
-        axios.get(`${apiUrl}backend/call_transcript/${call.callid}`)
-            .then(res => { setDataTable(res.data); setTranscriptText(""); setSummarization(false); setQuestionText(''); })
-            .catch(err => console.log(err));
-
-        axios.get(`${apiUrl}backend/call_tags/${call.callid}`)
-            .then(res => { setTags(deduplicateEntries(res.data)); })
-            .catch(err => console.log(err));
+    // Load data and handle autoplay when the callid changes
+    useEffect(() => {
+        if (call.callid) {
+            loadCallData();
+            if (call.autoplay) {
+                setPlaying(true);
+                call.setAutoplay(false); // Reset autoplay flag
+            } else {
+                setPlaying(false); // Stop playing if a new call is selected without autoplay
+            }
+        }
     }, [call.callid]);
 
     const handlePositionChange = (position: number) => { };
-    const onReadyHandler = () => { setPlaying(true); }
+    const onReadyHandler = () => {
+        // Only auto-play if this happens after user interaction
+        // For now, we'll just update the audio duration when ready
+        if (audioRef.current) {
+            setAudioDuration(audioRef.current.duration);
+        }
+    }
+    
+    const handleTimeUpdate = () => {
+        if (audioRef.current) {
+            setPosition(audioRef.current.currentTime);
+        }
+    };
+    
+    const handleLoadedMetadata = () => {
+        if (audioRef.current) {
+            setAudioDuration(audioRef.current.duration);
+        }
+    };
+    
+    const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        // Load data if not already loaded
+        if (dataTable.length === 0) {
+            loadCallData();
+        }
+        if (audioRef.current && audioDuration > 0) {
+            const progressBar = e.currentTarget;
+            const clickPosition = e.clientX - progressBar.getBoundingClientRect().left;
+            const progressBarWidth = progressBar.clientWidth;
+            const newTime = (clickPosition / progressBarWidth) * audioDuration;
+            audioRef.current.currentTime = newTime;
+            setPosition(newTime);
+        }
+    };
+    
+    useEffect(() => {
+        if (audioRef.current) {
+            if (playing) {
+                // Only attempt to play if not already playing
+                if (audioRef.current.paused) {
+                    audioRef.current.play().catch(e => console.error("Error playing audio:", e));
+                }
+            } else {
+                audioRef.current.pause();
+            }
+        }
+    }, [playing]);
 
     return (
         <div className='callcard'>
             {showApiKeyModal && <ApiKeyModal onSave={handleSaveApiKey} />}
             <div className='Card'>
-                <div className='player'>
-                    <button className='playBTN' onClick={() => setPlaying(prev => !prev)}>{playing ? '||' : '▶'}</button>
-                    <Wavesurfer
-                        src={`${apiUrl}file/file/${call.callid}`}
-                        position={position}
-                        onPositionChange={handlePositionChange}
-                        onReady={onReadyHandler}
-                        onFinish={() => setPlaying(false)}
-                        playing={playing}
-                        muted={muted}
-                        splitChannels={true}
-                    />
+                <div className='player' style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <button className='playBTN' style={{ fontSize: '12px', padding: '4px 8px', height: '30px', width: '40px' }} onClick={handleClickPlay}>{playing ? '||' : '▶'}</button>
+                    <div className="audio-progress-container" style={{ flex: 1, paddingRight: '20px', position: 'relative', cursor: 'pointer' }} onClick={handleProgressClick}>
+                        <div style={{ width: '100%', height: '20px', backgroundColor: '#f8f9fa', position: 'relative' }}>
+                            <div className="audio-progress-bar" style={{ width: `${(position / audioDuration) * 100 || 0}%`, height: '100%', backgroundColor: '#383351' }}></div>
+                        </div>
+                        <div style={{ position: 'relative', height: '20px', display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#6c757d', marginTop: '4px' }}>
+                            {audioDuration > 0 && Array.from({ length: Math.floor(audioDuration / 30) + 1 }, (_, i) => {
+                                const time = i * 30;
+                                if (time <= audioDuration) {
+                                    return (
+                                        <div
+                                            key={i}
+                                            style={{ position: 'absolute', left: `${(time / audioDuration) * 100}%`, transform: 'translateX(-50%)' }}
+                                        >
+                                            {formatTime(time)}
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })}
+                        </div>
+                        <audio
+                            ref={audioRef}
+                            src={`${apiUrl}file/file/${call.callid}`}
+                            onTimeUpdate={handleTimeUpdate}
+                            onLoadedMetadata={handleLoadedMetadata}
+                            onEnded={() => setPlaying(false)}
+                            style={{ display: 'none' }}
+                        />
+                    </div>
                     <div className='callMetaContainer'>
-                        <div className='callMeta'>Мета информация{Object.entries(call.item).map(([key, subject], i) => (
+                        <div className='callMeta'>Мета информация{Object.entries(call.item).filter(([key, _]) => key !== 'call_uuid').map(([key, subject], i) => (
                             <div className="metas" key={key}>
                                 <span className='keys'>{key}</span>
-                                <span className='values'>{subject} {call.item.name}</span>
+                                <span className='values'>{key === 'call_start_ts' ? formatDateTime(subject as string) : subject} {call.item.name}</span>
                             </div>
                         ))}
                         </div>
@@ -252,9 +343,9 @@ function CallCardElement(call: Icall) {
                     </div>
                     <div className='transcriptionText'>
                         {summarization ? transcriptText :
-                            dataTable.map(Frase => (
+                            dataTable.map((Frase, index) => (
                                 <div
-                                    key={Frase.result[0].start}
+                                    key={`${Frase.result[0].start}-${index}`}
                                     className={"text " + (Frase.spk ? 'right ' : 'left ') + Frase.emotion + " " + Frase.emotion_audio + "_audio"}
                                     style={{
                                         top: (Frase.result[0].start / 3) + 'em',

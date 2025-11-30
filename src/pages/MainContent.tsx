@@ -21,6 +21,7 @@ export function MainContent() {
     const [dataTable, setDataTable] = useState([]);
     const [callid, setCallid] = useState("");
     const [item, setItem] = useState([]);
+    const [autoplay, setAutoplay] = useState(false);
 
     useEffect(() => {
         updateData();
@@ -62,6 +63,7 @@ export function MainContent() {
     const setCall = (call: string, item: any) => {
         setCallid(call);
         setItem(item);
+        setAutoplay(true); // Enable autoplay for the selected call
         console.log(item);
         return false;
     };
@@ -77,7 +79,7 @@ export function MainContent() {
 
     return (
         <div className={mainClassnames.join(' ')}>
-            <CallCardElement callid={callid} item={item} />
+            <CallCardElement callid={callid} item={item} autoplay={autoplay} setAutoplay={setAutoplay} />
             <div className="details">
                 <div className='FiltersForm'>
                     <button onClick={() => { updateData(); setOffset(0); }}>UPDATE</button>

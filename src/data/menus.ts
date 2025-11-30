@@ -1,9 +1,35 @@
-import { IMenu } from "../models";
+import { IoIosHome, IoIosStats, IoIosSearch, IoIosCloudUpload, IoIosPricetag } from "react-icons/io";
+import { homeOutline, analyticsOutline, searchOutline, sendOutline, pricetagOutline } from 'ionicons/icons'; // Import ionicons
 
-export const menus: IMenu[] = [
-    {name:"Поиск звонков", ion: "search-outline", url:"/"},
-    {name:"Речевая аналитика", ion: "analytics-outline",url:"/charts"},
-    {name:"Текстовый поиск", ion: "search-outline", url:"/textsearch"},
-    {name:"Отправка файла", ion: "send-outline", url:"/sendfile"},
-    {name:"Редактор Тэгов", ion: "pricetags-outline", url:"/tags"},
+export const menus = [
+    {
+        title: 'Главная',
+        url: '/',
+        icon: IoIosHome,
+        ion: homeOutline // Added ionicon
+    },
+    {
+        title: 'Статистика',
+        url: '/charts',
+        icon: IoIosStats,
+        ion: analyticsOutline // Added ionicon
+    },
+    {
+        title: 'Поиск по тексту',
+        url: '/textsearch',
+        icon: IoIosSearch,
+        ion: searchOutline // Added ionicon
+    },
+    {
+        title: 'Загрузка файла',
+        url: '/sendfile',
+        icon: IoIosCloudUpload,
+        ion: sendOutline // Added ionicon
+    },
+    {
+        title: 'Редактор тегов',
+        url: '/tags',
+        icon: IoIosPricetag,
+        ion: pricetagOutline // Added ionicon
+    }
 ]

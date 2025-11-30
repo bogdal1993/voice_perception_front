@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatDateTime } from '../utils/dateUtils';
 
 interface ICol{
   heading: string
@@ -30,7 +31,7 @@ export const Table = ( table:ITable ) => {
           </tr>
         </thead>
         <tbody>
-          {table.data.map((item, index) => <TableRow item={item} column={table.column} setCallid={table.setCallid} />)}
+          {table.data.map((item, index) => <TableRow key={item.call_uuid || index} item={item} column={table.column} setCallid={table.setCallid} />)}
         </tbody>
       </table>
     )
@@ -46,23 +47,28 @@ export const Table = ( table:ITable ) => {
 
   const TableRow = (tableRowProp:ITableRow) => (
     <tr id={tableRowProp.item['call_uuid']} onClick={() => {
-          tableRowProp.setCallid(tableRowProp.item['call_uuid'], tableRowProp.item); 
+          tableRowProp.setCallid(tableRowProp.item['call_uuid'], tableRowProp.item);
           return false
         }
       }>
       {tableRowProp.column.map((columnItem, index) => {
-  
+
         if(columnItem.value.includes('.')) {
           const itemSplit = columnItem.value.split('.') //['address', 'city']
-          return <td>{tableRowProp.item[itemSplit[0]][itemSplit[1]]}</td>
+          return <td key={columnItem.value}>{tableRowProp.item[itemSplit[0]][itemSplit[1]]}</td>;
         }
         let width = "10%";
         if(columnItem.value=="text"){
           width="30%"
         }
-  
+
+        // Format call_start_ts with our utility function
+        const cellValue = columnItem.value === 'call_start_ts'
+          ? formatDateTime(tableRowProp.item[`${columnItem.value}`])
+          : tableRowProp.item[`${columnItem.value}`];
+
         return (
-            <td key={columnItem.value} width={width}>{tableRowProp.item[`${columnItem.value}`]}</td>
+            <td key={columnItem.value} width={width}>{cellValue}</td>
         )
       })}
     </tr>

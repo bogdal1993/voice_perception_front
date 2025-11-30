@@ -6,6 +6,8 @@ import { ChartContent } from './pages/ChartContent';
 import { TextSearch } from './pages/TextSearchPage';
 import FileForm from './pages/SendFileForm';
 import EditableTable from './pages/TagEditor'
+import LoginPage from './pages/LoginPage'; // New import
+import AdminPanel from './pages/AdminPanel'; // New import
 
 
 function App() {
@@ -18,6 +20,8 @@ function App() {
         <Route path='/textsearch' element={<TextSearch/>}></Route>
         <Route path='/sendfile' element={<FileForm></FileForm>}></Route>
         <Route path='/tags' element={<EditableTable></EditableTable>}></Route>
+        <Route path='/login' element={<LoginPage/>}></Route> {/* New Route */}
+        <Route path='/admin' element={<AdminPanel/>}></Route> {/* New Route */}
       </Routes>
     </div>
     );
