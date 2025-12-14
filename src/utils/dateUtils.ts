@@ -57,5 +57,19 @@ export const formatDateTimeWithoutSeconds = (date: string | Date | null | undefi
   const minutes = String(dateObj.getMinutes()).padStart(2, '0');
 
   // Format as DD.MM.YYYY HH:MM
-  return `${day}.${month}.${year} ${hours}:${minutes}`;
-};
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+  };
+  
+  /**
+   * Formats duration in seconds to MM:SS format
+   * @param seconds - Duration in seconds
+   * @returns Formatted duration string in MM:SS format (e.g., "3:49")
+   */
+  export const formatDuration = (seconds: number): string => {
+    if (seconds < 0) return '0:00';
+    
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };

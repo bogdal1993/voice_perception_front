@@ -4,7 +4,8 @@ import axios from 'axios';
 import { apiUrl } from '../data/chartsData';
 import ApiKeyModal from './ApiKeyModal';
 import { OpenAI } from 'openai';
-import { formatDateTime } from '../utils/dateUtils';
+import { formatDateTime, formatDuration } from '../utils/dateUtils';
+import ReactMarkdown from 'react-markdown';
 
 interface IFrase {
     text: string;
@@ -46,6 +47,7 @@ function CallCardElement(call: Icall) {
     const [muted, setMuted] = useState(false);
     const [playing, setPlaying] = useState(false);
     const [audioDuration, setAudioDuration] = useState(0);
+    const [isThinking, setIsThinking] = useState(false);
     const audioRef = useRef<HTMLAudioElement>(null);
     
     const loadCallData = () => {
@@ -88,6 +90,9 @@ function CallCardElement(call: Icall) {
             full_text += questionText + ':\n';
         }
     
+        setIsThinking(true);
+        setTranscriptText("Думаю...");
+        
         try {
             const stream = await client.chat.completions.create({
                 model: modelId,
@@ -103,15 +108,21 @@ function CallCardElement(call: Icall) {
             let out = "";
             for await (const chunk of stream) {
                 if (chunk.choices && chunk.choices.length > 0) {
-                    const newContent = chunk.choices[0].delta.content;
-                    out += newContent;
-                    console.log(newContent);
-                    setTranscriptText(out); // Обновляем состояние по мере получения новых данных
+                    let newContent = chunk.choices[0].delta.content;
+                    if (newContent) {
+                        out += newContent;
+                        // Remove content within  and
+                        let filteredOut = out.replace(/<think>[\s\S]*?<\/think>/g, '');
+                        console.log(newContent);
+                        setTranscriptText(filteredOut); // Обновляем состояние по мере получения новых данных
+                    }
                 }
             }
+            setIsThinking(false);
         } catch (err) {
             console.error("Ошибка при запросе к OpenAI API:", err);
             setTranscriptText("Ошибка при запросе к OpenAI API");
+            setIsThinking(false);
         }
     };
 
@@ -124,14 +135,81 @@ function CallCardElement(call: Icall) {
     };
 
     const handleDownloadDialog = () => {
-        const dialogText = generateDialogText(dataTable);
-        const blob = new Blob([dialogText], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `dialog_${call.callid}.txt`;
-        a.click();
-        URL.revokeObjectURL(url);
+        if (summarization && transcriptText && !transcriptText.startsWith("Ошибка при запросе к OpenAI API") && !transcriptText.startsWith("Функция суммаризации недоступна") && transcriptText !== "Слишком короткий диалог") {
+            // Download summary with prompt if summarization is active and completed successfully
+            const prompt = localStorage.getItem('prompt') || 'Верни краткую сводку по диалогу на русском языке';
+            let fullContent = '';
+            
+            if (questionText) {
+                // If there's a question, format as question-answer
+                fullContent = `Промпт (вопрос по диалогу): ${questionText}\n\nОтвет:\n${transcriptText}`;
+            } else {
+                // If there's no question, use the default prompt
+                fullContent = `Промпт: ${prompt}\n\nОтвет:\n${transcriptText}`;
+            }
+            
+            const blob = new Blob([fullContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            // Generate UUID for summary file
+            const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            a.href = url;
+            a.download = `summary_${uuid}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } else {
+            // Download transcription if summarization is not active or failed
+            const dialogText = generateDialogText(dataTable);
+            const blob = new Blob([dialogText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dialog_${call.callid}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    };
+
+    const handleDownloadAudio = async () => {
+        try {
+            const audioUrl = `${apiUrl}file/file/${call.callid}`;
+            
+            // Формируем имя файла: Caller + Calle + время звонка + направление звонка
+            const caller = call.item.caller || 'unknown';
+            const callee = call.item.calle || 'unknown';
+            const callTime = call.item.call_start_ts ? formatDateTime(call.item.call_start_ts) : 'unknown';
+            const direction = call.item.direction || 'unknown';
+            
+            // Очищаем время от символов, которые недопустимы в именах файлов
+            const cleanCallTime = callTime.replace(/[:.]/g, '-').replace(/\s/g, '_');
+            const fileName = `${caller}_${callee}_${cleanCallTime}_${direction}.mp3`;
+            
+            // Используем fetch для получения аудио файла
+            const response = await fetch(audioUrl);
+            const blob = await response.blob();
+            
+            // Создаем URL для скачивания
+            const downloadUrl = URL.createObjectURL(blob);
+            
+            // Создаем временный элемент для скачивания
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Удаляем временный элемент и освобождаем URL
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(downloadUrl);
+            }, 100);
+        } catch (error) {
+            console.error('Error downloading audio file:', error);
+        }
     };
 
     const handleGetSummarization = async () => {
@@ -143,7 +221,7 @@ function CallCardElement(call: Icall) {
             }
 
             setLoading(true);
-            setTranscriptText("Loading...");
+            setTranscriptText("Думаю...");
 
             try {
                 await get_summarization(dataTable, questionText, setTranscriptText);
@@ -272,20 +350,21 @@ function CallCardElement(call: Icall) {
         <div className='callcard'>
             {showApiKeyModal && <ApiKeyModal onSave={handleSaveApiKey} />}
             <div className='Card'>
-                <div className='player' style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                    <button className='playBTN' style={{ fontSize: '12px', padding: '4px 8px', height: '30px', width: '40px' }} onClick={handleClickPlay}>{playing ? '||' : '▶'}</button>
-                    <div className="audio-progress-container" style={{ flex: 1, paddingRight: '20px', position: 'relative', cursor: 'pointer' }} onClick={handleProgressClick}>
-                        <div style={{ width: '100%', height: '20px', backgroundColor: '#f8f9fa', position: 'relative' }}>
-                            <div className="audio-progress-bar" style={{ width: `${(position / audioDuration) * 100 || 0}%`, height: '100%', backgroundColor: '#383351' }}></div>
+                <div className='player player-container'>
+                    <button className='playBTN play-button' onClick={handleClickPlay}>{playing ? '||' : '▶'}</button>
+                    <div className="audio-progress-container audio-progress-wrapper" onClick={handleProgressClick}>
+                        <div className="audio-progress-track">
+                            <div className="audio-progress-bar audio-progress-fill" style={{ width: `${(position / audioDuration) * 100 || 0}%` }}></div>
                         </div>
-                        <div style={{ position: 'relative', height: '20px', display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#6c757d', marginTop: '4px' }}>
+                        <div className="audio-progress-labels">
                             {audioDuration > 0 && Array.from({ length: Math.floor(audioDuration / 30) + 1 }, (_, i) => {
                                 const time = i * 30;
                                 if (time <= audioDuration) {
                                     return (
                                         <div
                                             key={i}
-                                            style={{ position: 'absolute', left: `${(time / audioDuration) * 100}%`, transform: 'translateX(-50%)' }}
+                                            className="time-marker"
+                                            style={{ left: `${(time / audioDuration) * 100}%` }}
                                         >
                                             {formatTime(time)}
                                         </div>
@@ -300,20 +379,26 @@ function CallCardElement(call: Icall) {
                             onTimeUpdate={handleTimeUpdate}
                             onLoadedMetadata={handleLoadedMetadata}
                             onEnded={() => setPlaying(false)}
-                            style={{ display: 'none' }}
+                            className="audio-element"
                         />
                     </div>
+                    <button className='playBTN play-button' onClick={handleDownloadAudio}>⬇️</button>
                     <div className='callMetaContainer'>
                         <div className='callMeta'>Мета информация{Object.entries(call.item).filter(([key, _]) => key !== 'call_uuid').map(([key, subject], i) => (
                             <div className="metas" key={key}>
                                 <span className='keys'>{key}</span>
-                                <span className='values'>{key === 'call_start_ts' ? formatDateTime(subject as string) : subject} {call.item.name}</span>
+                                <span className='values'>
+                                  {key === 'call_start_ts' ? formatDateTime(subject as string) :
+                                   key === 'duration' ? formatDuration(subject as number) :
+                                   key === 'direction' ? (subject === 'inbound' ? 'in' : subject === 'outbound' ? 'out' : subject) :
+                                   subject} {call.item.name}
+                                </span>
                             </div>
                         ))}
                         </div>
                         <div className='tagContainer'>Тэги
                             <div className='callTags'>
-                                {tags.map(Tag => <span key={`${Tag.spk}-${Tag.tag}`} style={{ opacity: Tag.proba }} className={"tag" + Tag.spk} title={(100 * Tag.proba).toFixed(2).toString() + " %"}>{Tag.tag}</span>)}
+                                {tags.map(Tag => <span key={`${Tag.spk}-${Tag.tag}`} className={"tag" + Tag.spk + " tag-opacity"} style={{ '--tag-opacity': Tag.proba } as React.CSSProperties} title={(100 * Tag.proba).toFixed(2).toString() + " %"}>{Tag.tag}</span>)}
                             </div>
                         </div>
                     </div>
@@ -342,11 +427,19 @@ function CallCardElement(call: Icall) {
                         <span>{call.item['calle']}</span>
                     </div>
                     <div className='transcriptionText'>
-                        {summarization ? transcriptText :
+                        {summarization && isThinking ?
+                            <div className="thinking-indicator">
+                                Думаю...
+                            </div>
+                        : summarization ?
+                            <div className="markdown-content">
+                                <ReactMarkdown>{transcriptText.replace(/<think>[\s\S]*?<\/think>/g, '')}</ReactMarkdown>
+                            </div>
+                        :
                             dataTable.map((Frase, index) => (
                                 <div
                                     key={`${Frase.result[0].start}-${index}`}
-                                    className={"text " + (Frase.spk ? 'right ' : 'left ') + Frase.emotion + " " + Frase.emotion_audio + "_audio"}
+                                    className={"text " + (Frase.spk ? 'right ' : 'left ') + Frase.emotion + " " + Frase.emotion_audio + "_audio transcription-text-position"}
                                     style={{
                                         top: (Frase.result[0].start / 3) + 'em',
                                         bottom: (Frase.result[0].end / 3) + 'em'

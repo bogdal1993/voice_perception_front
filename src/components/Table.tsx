@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatDateTime } from '../utils/dateUtils';
+import { formatDateTime, formatDuration } from '../utils/dateUtils';
 
 interface ICol{
   heading: string
@@ -55,11 +55,7 @@ export const Table = ( table:ITable ) => {
           return false
         }
       }
-      style={{
-        backgroundColor: tableRowProp.playingCallId === tableRowProp.item['call_uuid'] ? '#e3f2fd' : 'transparent',
-        fontWeight: tableRowProp.playingCallId === tableRowProp.item['call_uuid'] ? 'bold' : 'normal'
-      }}
-      className="table-row-hover"
+      className={`table-row-hover ${tableRowProp.playingCallId === tableRowProp.item['call_uuid'] ? 'table-row-active' : 'table-row-inactive'}`}
     >
       {tableRowProp.column.map((columnItem, index) => {
 
@@ -72,10 +68,16 @@ export const Table = ( table:ITable ) => {
           width="30%"
         }
 
-        // Format call_start_ts with our utility function
-        const cellValue = columnItem.value === 'call_start_ts'
-          ? formatDateTime(tableRowProp.item[`${columnItem.value}`])
-          : tableRowProp.item[`${columnItem.value}`];
+        // Format call_start_ts and duration with our utility functions
+        let cellValue = tableRowProp.item[`${columnItem.value}`];
+        if (columnItem.value === 'call_start_ts') {
+          cellValue = formatDateTime(tableRowProp.item[`${columnItem.value}`]);
+        } else if (columnItem.value === 'duration') {
+          cellValue = formatDuration(tableRowProp.item[`${columnItem.value}`]);
+        } else if (columnItem.value === 'direction') {
+          // Convert direction values for display
+          cellValue = cellValue === 'inbound' ? 'in' : cellValue === 'outbound' ? 'out' : cellValue;
+        }
 
         return (
             <td key={columnItem.value} width={width}>{cellValue}</td>
